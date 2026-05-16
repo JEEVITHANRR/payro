@@ -242,7 +242,15 @@ exports.liveActivity = asyncHandler(async (req, res) => {
   });
 
   ApiResponse.success(res, {
-    auditLogs:     logs,
+    auditLogs: logs.map(log => ({
+      id:        log.id,
+      createdAt: log.createdAt,
+      action:    log.action,
+      entity:    log.entity,
+      actor:     `${log.actor.firstName} ${log.actor.lastName}`,
+      role:      log.actor.role,
+      metadata:  log.metadata,
+    })),
     notifications,
   });
 });

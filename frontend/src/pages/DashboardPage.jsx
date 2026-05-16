@@ -53,7 +53,8 @@ export default function DashboardPage() {
 
       if (sumRes.status === 'fulfilled')   setSummary(sumRes.value.data.data);
       if (kpiRes.status === 'fulfilled')   setKpis(kpiRes.value.data.data);
-      if (actRes.status === 'fulfilled')   setActivity(actRes.value.data.data ?? []);
+      // Backend returns { auditLogs: [], notifications: [] } — extract auditLogs for the feed
+      if (actRes.status === 'fulfilled')   setActivity(actRes.value.data.data?.auditLogs ?? []);
       if (notifRes.status === 'fulfilled') setUnread(notifRes.value.data.data?.count ?? 0);
     } catch {
       toast.error('Failed to load dashboard data.');
@@ -135,26 +136,26 @@ export default function DashboardPage() {
           <>
             <StatCard
               label="Total Employees"
-              value={fmt(summary?.totalEmployees)}
-              change={summary?.employeeGrowth}
-              changeDir={summary?.employeeGrowth >= 0 ? 'up' : 'down'}
+              value={fmt(summary?.workforce?.total)}
+              change={summary?.payroll?.momChangePct}
+              changeDir={summary?.payroll?.momChangePct >= 0 ? 'up' : 'down'}
               color="var(--primary)"
             />
             <StatCard
               label="Monthly Payroll"
-              value={fmtCurrency(summary?.monthlyPayroll)}
-              change={summary?.payrollChange}
-              changeDir={summary?.payrollChange >= 0 ? 'up' : 'down'}
+              value={fmtCurrency(summary?.payroll?.totalCost)}
+              change={summary?.payroll?.momChangePct}
+              changeDir={summary?.payroll?.momChangePct >= 0 ? 'up' : 'down'}
               color="var(--cyan)"
             />
             <StatCard
-              label="Active Payroll Runs"
-              value={fmt(summary?.activePayrolls)}
+              label="Active Employees"
+              value={fmt(summary?.workforce?.active)}
               color="var(--emerald)"
             />
             <StatCard
-              label="Pending Expenses"
-              value={fmt(summary?.pendingExpenses)}
+              label="Onboarding"
+              value={fmt(summary?.workforce?.onboarding)}
               color="var(--amber)"
             />
           </>
@@ -164,10 +165,10 @@ export default function DashboardPage() {
       {/* ── Secondary KPIs ── */}
       {kpis && (
         <div className="grid-4" style={{ marginBottom: 28 }}>
-          <StatCard label="Avg Salary"        value={fmtCurrency(kpis.avgSalary)} />
-          <StatCard label="Departments"       value={fmt(kpis.departments)} />
-          <StatCard label="This Month Payouts" value={fmtCurrency(kpis.monthPayouts)} />
-          <StatCard label="On Leave Today"    value={fmt(kpis.onLeave)} />
+          <StatCard label="Avg Salary"        value={fmtCurrency(kpis.avgSalary?.value)} />
+          <StatCard label="Workforce"         value={fmt(kpis.totalWorkforce?.value)} />
+          <StatCard label="Retention"         value={fmt(kpis.retentionRate?.value)} prefix="" />
+          <StatCard label="Longevity"         value={fmt(kpis.avgLongevity?.value)} />
         </div>
       )}
 
