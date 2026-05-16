@@ -1,0 +1,23 @@
+{
+  "name": "payro",
+  "version": "1.0.0",
+  "description": "Payro — Enterprise AI-Powered Payroll Platform (monorepo root)",
+  "private": true,
+  "scripts": {
+    "install:all":   "npm install --prefix backend && npm install --prefix frontend",
+    "dev:backend":   "npm run dev   --prefix backend",
+    "dev:frontend":  "npm run dev   --prefix frontend",
+    "dev":           "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:frontend":"npm run build --prefix frontend",
+    "db:generate":   "npm run prisma:generate --prefix backend",
+    "db:migrate":    "npm run prisma:migrate  --prefix backend",
+    "db:seed":       "npm run prisma:seed     --prefix backend",
+    "db:studio":     "npm run prisma:studio   --prefix backend",
+    "docker:up":     "npm run docker:up       --prefix backend",
+    "docker:down":   "npm run docker:down     --prefix backend",
+    "setup": "npm run install:all && npm run db:generate"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

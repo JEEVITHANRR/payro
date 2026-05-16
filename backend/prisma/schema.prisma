@@ -1,0 +1,492 @@
+// Payro Enterprise Payroll Platform — Prisma Schema
+// Production-grade PostgreSQL schema with full relationships, indexing, soft deletes
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  CFO
+  HR_MANAGER
+  PAYROLL_MANAGER
+  EMPLOYEE
+  AUDITOR
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  ONBOARDING
+  OFFBOARDING
+  TERMINATED
+  ON_LEAVE
+  SUSPENDED
+}
+
+enum PayrollStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PROCESSING
+  RELEASED
+  FAILED
+  CANCELLED
+}
+
+enum TransactionType {
+  SALARY
+  BONUS
+  EXPENSE_REIMBURSEMENT
+  TAX_PAYMENT
+  BENEFIT
+  DEDUCTION
+  CONTRACTOR_PAYMENT
+}
+
+enum TransactionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+enum NotificationType {
+  PAYROLL_RELEASED
+  PAYROLL_PROCESSING
+  NEW_EMPLOYEE
+  EMPLOYEE_OFFBOARDING
+  AI_INSIGHT
+  SECURITY_ALERT
+  SYSTEM_UPDATE
+  COMPLIANCE_ALERT
+  TAX_REMINDER
+  APPROVAL_REQUIRED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  REMOTE
+  ON_LEAVE
+  HOLIDAY
+}
+
+enum ExpenseStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  REIMBURSED
+}
+
+enum InsightType {
+  TAX_OPTIMIZATION
+  COST_REDUCTION
+  COMPLIANCE_RISK
+  SALARY_BENCHMARK
+  ANOMALY_DETECTION
+  FRAUD_ALERT
+  BUDGET_FORECAST
+}
+
+enum InsightSeverity {
+  INFO
+  WARNING
+  CRITICAL
+  OPPORTUNITY
+}
+
+enum AuditAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  EXPORT
+  RUN_PAYROLL
+  APPROVE
+  REJECT
+  INVITE
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACTOR
+  INTERN
+}
+
+enum OrgSize {
+  STARTUP
+  SMALL
+  MEDIUM
+  ENTERPRISE
+}
+
+// ─────────────────────────────────────────────
+// CORE MODELS
+// ─────────────────────────────────────────────
+
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  legalName   String?
+  taxId       String?
+  logoUrl     String?
+  website     String?
+  industry    String?
+  size        OrgSize? @default(ENTERPRISE)
+  country     String   @default("US")
+  currency    String   @default("USD")
+  timezone    String   @default("UTC")
+  settings    Json     @default("{}")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  employees   Employee[]
+  departments Department[]
+  payrollRuns PayrollRun[]
+  aiInsights  AiInsight[]
+
+  @@index([slug])
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  passwordHash     String
+  firstName        String
+  lastName         String
+  phone            String?
+  avatarUrl        String?
+  role             UserRole  @default(EMPLOYEE)
+  isActive         Boolean   @default(true)
+  isEmailVerified  Boolean   @default(false)
+  lastLoginAt      DateTime?
+  lastLoginIp      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  organizationId   String?
+  organization     Organization? @relation(fields: [organizationId], references: [id])
+
+  employee         Employee?
+  refreshTokens    RefreshToken[]
+  passwordResets   PasswordResetToken[]
+  emailVerifications EmailVerificationToken[]
+  notifications    Notification[]
+  auditLogs        AuditLog[]   @relation("ActorLogs")
+
+  @@index([email])
+  @@index([organizationId])
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isRevoked   Boolean  @default(false)
+  ipAddress   String?
+  userAgent   String?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+model PasswordResetToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+model Department {
+  id              String    @id @default(uuid())
+  name            String
+  code            String?
+  description     String?
+  budget          Decimal?  @db.Decimal(15, 2)
+  budgetAllocated Decimal?  @db.Decimal(15, 2)
+  budgetUsed      Decimal?  @db.Decimal(15, 2)
+  headcount       Int       @default(0)
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  managerId       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  employees      Employee[]
+  payrollEntries PayrollEntry[]
+
+  @@index([organizationId])
+  @@index([deletedAt])
+}
+
+model Employee {
+  id               String         @id @default(uuid())
+  employeeId       String         @unique
+  userId           String?        @unique
+  user             User?          @relation(fields: [userId], references: [id])
+  firstName        String
+  lastName         String
+  email            String         @unique
+  phone            String?
+  title            String
+  jobRole          String?
+  departmentId     String
+  department       Department     @relation(fields: [departmentId], references: [id])
+  organizationId   String
+  organization     Organization   @relation(fields: [organizationId], references: [id])
+  managerId        String?
+  manager          Employee?      @relation("ManagerReports", fields: [managerId], references: [id])
+  reports          Employee[]     @relation("ManagerReports")
+  employmentType   EmploymentType @default(FULL_TIME)
+  status           EmployeeStatus @default(ACTIVE)
+  hireDate         DateTime
+  terminationDate  DateTime?
+  promotedAt       DateTime?
+  baseSalary       Decimal        @db.Decimal(15, 2)
+  targetSalary     Decimal?       @db.Decimal(15, 2)
+  currency         String         @default("USD")
+  dateOfBirth      DateTime?
+  address          Json?
+  bankAccountInfo  Json?
+  taxInfo          Json?
+  avatarUrl        String?
+  performanceScore Float?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deletedAt        DateTime?
+
+  payrollEntries   PayrollEntry[]
+  expenses         Expense[]
+  attendance       Attendance[]
+  transactions     Transaction[]
+
+  @@index([organizationId])
+  @@index([departmentId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model PayrollRun {
+  id             String        @id @default(uuid())
+  name           String
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  periodStart    DateTime
+  periodEnd      DateTime
+  payDate        DateTime
+  status         PayrollStatus @default(DRAFT)
+  currency       String        @default("USD")
+  totalGross     Decimal       @db.Decimal(15, 2) @default(0)
+  totalNet       Decimal       @db.Decimal(15, 2) @default(0)
+  totalTax       Decimal       @db.Decimal(15, 2) @default(0)
+  totalDeductions Decimal      @db.Decimal(15, 2) @default(0)
+  employeeCount  Int           @default(0)
+  notes          String?
+  approvedById   String?
+  approvedAt     DateTime?
+  processedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+
+  entries        PayrollEntry[]
+  transactions   Transaction[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model PayrollEntry {
+  id             String     @id @default(uuid())
+  payrollRunId   String
+  payrollRun     PayrollRun @relation(fields: [payrollRunId], references: [id])
+  employeeId     String
+  employee       Employee   @relation(fields: [employeeId], references: [id])
+  departmentId   String
+  department     Department @relation(fields: [departmentId], references: [id])
+  baseSalary     Decimal    @db.Decimal(15, 2)
+  grossSalary    Decimal    @db.Decimal(15, 2)
+  netSalary      Decimal    @db.Decimal(15, 2)
+  taxAmount      Decimal    @db.Decimal(15, 2) @default(0)
+  taxRate        Float      @default(0)
+  bonuses        Decimal    @db.Decimal(15, 2) @default(0)
+  deductions     Decimal    @db.Decimal(15, 2) @default(0)
+  overtime       Decimal    @db.Decimal(15, 2) @default(0)
+  currency       String     @default("USD")
+  breakdownJson  Json?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([payrollRunId])
+  @@index([employeeId])
+}
+
+model Transaction {
+  id             String            @id @default(uuid())
+  type           TransactionType
+  status         TransactionStatus @default(PENDING)
+  amount         Decimal           @db.Decimal(15, 2)
+  currency       String            @default("USD")
+  employeeId     String?
+  employee       Employee?         @relation(fields: [employeeId], references: [id])
+  payrollRunId   String?
+  payrollRun     PayrollRun?       @relation(fields: [payrollRunId], references: [id])
+  reference      String?           @unique
+  description    String?
+  metadata       Json?
+  processedAt    DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([employeeId])
+  @@index([payrollRunId])
+  @@index([status])
+  @@index([type])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+model Expense {
+  id           String        @id @default(uuid())
+  employeeId   String
+  employee     Employee      @relation(fields: [employeeId], references: [id])
+  title        String
+  description  String?
+  amount       Decimal       @db.Decimal(15, 2)
+  currency     String        @default("USD")
+  category     String
+  status       ExpenseStatus @default(SUBMITTED)
+  receiptUrl   String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+}
+
+model Attendance {
+  id         String           @id @default(uuid())
+  employeeId String
+  employee   Employee         @relation(fields: [employeeId], references: [id])
+  date       DateTime         @db.Date
+  status     AttendanceStatus
+  checkIn    DateTime?
+  checkOut   DateTime?
+  hoursWorked Float?
+  notes      String?
+  createdAt  DateTime         @default(now())
+
+  @@unique([employeeId, date])
+  @@index([employeeId])
+  @@index([date])
+}
+
+model AiInsight {
+  id              String          @id @default(uuid())
+  organizationId  String?
+  organization    Organization?   @relation(fields: [organizationId], references: [id])
+  type            InsightType
+  severity        InsightSeverity
+  title           String
+  summary         String?
+  message         String?
+  detail          String?
+  recommendation  String?
+  impact          String?
+  confidence      Float           @default(0.5)
+  potentialSaving Float?
+  affectedRegion  String?
+  affectedCount   Int?
+  isActive        Boolean         @default(true)
+  isApplied       Boolean         @default(false)
+  isDismissed     Boolean         @default(false)
+  appliedAt       DateTime?
+  metadata        Json?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([type])
+  @@index([severity])
+  @@index([organizationId])
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  actorId     String
+  actor       User        @relation("ActorLogs", fields: [actorId], references: [id])
+  action      AuditAction
+  entity      String
+  entityId    String?
+  ipAddress   String?
+  userAgent   String?
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
+}
