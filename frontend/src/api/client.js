@@ -144,7 +144,8 @@ export const analyticsApi = {
   payrollTrend:    () => client.get('/analytics/payroll-trend'),
   budgetBreakdown: () => client.get('/analytics/budget-breakdown'),
   headcountTrend:  () => client.get('/analytics/headcount-trend'),
-  compensationAnalysis: () => client.get('/analytics/compensation-analysis'),
+  compensation:    () => client.get('/analytics/compensation'),
+  taxTrend:        () => client.get('/analytics/tax-trend'),
   exportReport:    (params) => client.get('/analytics/export', { params }),
 };
 
@@ -152,8 +153,8 @@ export const analyticsApi = {
 export const aiApi = {
   list:              (params) => client.get('/ai', { params }),
   topInsight:        ()       => client.get('/ai/top'),
-  applyInsight:      (id)     => client.post(`/ai/apply/${id}`),
-  dismissInsight:    (id)     => client.patch(`/ai/dismiss/${id}`),
+  applyInsight:      (id)     => client.post(`/ai/${id}/apply`),
+  dismissInsight:    (id)     => client.post(`/ai/${id}/dismiss`),
   generateInsights:  (data)   => client.post('/ai/generate', data),
   salaryPredictions: ()       => client.get('/ai/salary-predictions'),
   fraudDetection:    ()       => client.get('/ai/fraud-detection'),
@@ -177,11 +178,11 @@ export const departmentApi = {
 
 // ─── Expenses/Treasury API ─────────────────────────────────────
 export const expenseApi = {
-  list:    (params) => client.get('/expenses', { params }),
-  create:  (data)   => client.post('/expenses', data),
-  getById: (id)     => client.get(`/expenses/${id}`),
-  approve: (id)     => client.post(`/expenses/${id}/approve`),
-  reject:  (id)     => client.post(`/expenses/${id}/reject`),
+  list:         (params) => client.get('/expenses', { params }),
+  create:       (data)   => client.post('/expenses', data),
+  getById:      (id)     => client.get(`/expenses/${id}`),
+  updateStatus: (id, data) => client.patch(`/expenses/${id}/status`, data),
+  remove:       (id)     => client.delete(`/expenses/${id}`),
 };
 
 export default client;

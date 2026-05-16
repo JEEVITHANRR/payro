@@ -3,22 +3,26 @@ import React, { useEffect, useState } from 'react';
 import AppLayout from '../components/layout/AppLayout';
 import { employeesApi } from '../api/client';
 import { toast } from 'sonner';
+import AddEmployeeModal from '../components/modals/AddEmployeeModal';
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetch = async () => {
+    setLoading(true);
+    try {
+      const { data } = await employeesApi.list();
+      setEmployees(data.data || []);
+    } catch (err) {
+      toast.error('Failed to load global directory.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const { data } = await employeesApi.list();
-        setEmployees(data.data || []);
-      } catch (err) {
-        toast.error('Failed to load global directory.');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetch();
   }, []);
 
@@ -37,9 +41,15 @@ export default function EmployeesPage() {
             <button className="btn" style={{ background: 'var(--bg-soft-ivory)', border: '1px solid var(--border-platinum)' }}>
               Export CSV
             </button>
-            <button className="btn btn-gold">+ Add Professional</button>
+            <button className="btn btn-gold" onClick={() => setIsModalOpen(true)}>+ Add Professional</button>
           </div>
         </div>
+
+        <AddEmployeeModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          onRefresh={fetch} 
+        />
 
         <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
           <table className="table">

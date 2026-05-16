@@ -8,22 +8,26 @@ import {
 } from 'lucide-react';
 import AppLayout from '../components/layout/AppLayout';
 import { departmentApi } from '../api/client';
+import AddDepartmentModal from '../components/modals/AddDepartmentModal';
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await departmentApi.list();
+      setDepartments(res.data.data);
+    } catch (err) {
+      console.error("Department Data Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await departmentApi.list();
-        setDepartments(res.data.data);
-      } catch (err) {
-        console.error("Department Data Error:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchData();
   }, []);
 
@@ -123,6 +127,7 @@ export default function DepartmentsPage() {
           {/* ─── Create New Card ─── */}
           <motion.div 
             whileHover={{ scale: 1.02 }}
+            onClick={() => setIsModalOpen(true)}
             className="card"
             style={{ 
               border: '2px dashed var(--border-platinum)', background: 'transparent',
@@ -137,6 +142,12 @@ export default function DepartmentsPage() {
             <p style={{ fontSize: '0.8rem', color: 'var(--text-slate)', marginTop: '8px' }}>Expand organizational hierarchy</p>
           </motion.div>
         </div>
+
+        <AddDepartmentModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          onRefresh={fetchData} 
+        />
 
         {/* ─── Optimization Notice ─── */}
         <div className="card glass" style={{ 
