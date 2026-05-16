@@ -13,8 +13,11 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage  from './pages/ResetPasswordPage';
 import VerifyEmailPage    from './pages/VerifyEmailPage';
 import DashboardPage      from './pages/DashboardPage';
+import EmployeesPage      from './pages/EmployeesPage';
+import PayrollPage        from './pages/PayrollPage';
 import ProfilePage        from './pages/ProfilePage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
+import PlaceholderPage    from './pages/PlaceholderPage';
 import NotFoundPage       from './pages/NotFoundPage';
 
 export default function App() {
@@ -61,8 +64,20 @@ export default function App() {
       {/* Protected (require auth) */}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard"       element={<DashboardPage />} />
+        <Route path="/employees"       element={<EmployeesPage />} />
+        <Route path="/payroll"         element={<PayrollPage />} />
         <Route path="/profile"         element={<ProfilePage />} />
         <Route path="/change-password" element={<ChangePasswordPage />} />
+        
+        {/* Module Placeholders */}
+        <Route path="/departments"     element={<PlaceholderPage title="Departments" subtitle="Organizational structure and budget allocation" icon="⬡" />} />
+        <Route path="/attendance"      element={<PlaceholderPage title="Attendance" subtitle="Time tracking and leave management" icon="◷" />} />
+        <Route path="/transactions"    element={<PlaceholderPage title="Transactions" subtitle="Ledger of all salary disbursements" icon="⟳" />} />
+        <Route path="/expenses"        element={<PlaceholderPage title="Expenses" subtitle="Reimbursements and tax deductions" icon="◉" />} />
+        <Route path="/analytics"       element={<PlaceholderPage title="Analytics" subtitle="Deep financial insights and trend analysis" icon="◎" />} />
+        <Route path="/ai"              element={<PlaceholderPage title="AI Insights" subtitle="Predictive intelligence and anomaly detection" icon="◈" />} />
+        <Route path="/audit"           element={<PlaceholderPage title="Audit Log" subtitle="System security and access monitoring" icon="◈" />} />
+        <Route path="/notifications"   element={<PlaceholderPage title="Notifications" subtitle="System alerts and task reminders" icon="🔔" />} />
       </Route>
 
       {/* Redirects */}
