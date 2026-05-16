@@ -7,7 +7,7 @@ export const useAuthStore = create(
     (set, get) => ({
       user:        null,
       accessToken: null,
-      isLoading:   true,
+      isLoading:   false,
 
       // ─── Actions ──────────────────────────────────
       setAuth: (user, accessToken) =>

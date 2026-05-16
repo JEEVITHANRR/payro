@@ -165,7 +165,7 @@ model Organization {
   employees   Employee[]
   departments Department[]
   payrollRuns PayrollRun[]
-  aiInsights  AiInsight[]
+  aiInsights  AIInsight[]
 
   @@index([slug])
 }
@@ -444,7 +444,7 @@ model Attendance {
   @@index([date])
 }
 
-model AiInsight {
+model AIInsight {
   id              String          @id @default(uuid())
   organizationId  String?
   organization    Organization?   @relation(fields: [organizationId], references: [id])

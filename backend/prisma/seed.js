@@ -244,7 +244,7 @@ async function main() {
   });
 
   // AI Insights
-  await prisma.aiInsight.upsert({
+  await prisma.aIInsight.upsert({
     where: { id: 'insight-001' },
     update: {},
     create: {
@@ -263,7 +263,7 @@ async function main() {
     },
   });
 
-  await prisma.aiInsight.create({
+  await prisma.aIInsight.create({
     data: {
       organizationId: org.id,
       type: 'COMPLIANCE_RISK',
