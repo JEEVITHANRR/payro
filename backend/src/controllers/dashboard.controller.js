@@ -7,7 +7,12 @@ const { cacheGet, cacheSet } = require('../config/redis');
 // ─── Main dashboard summary ───────────────────────────────────────
 // Feeds: Total Payroll, Budget Utilization, AI Insights, Tax Liability
 exports.summary = asyncHandler(async (req, res) => {
-  const orgId = req.query.organizationId || 'org-techflow-001';
+  // Get org dynamically — use query param or fallback to first org in DB
+  let orgId = req.query.organizationId;
+  if (!orgId) {
+    const firstOrg = await prisma.organization.findFirst({ select: { id: true } });
+    orgId = firstOrg?.id || 'none';
+  }
   const cacheKey = `dashboard:summary:${orgId}`;
   const cached = await cacheGet(cacheKey);
   if (cached) return ApiResponse.success(res, cached);
@@ -56,7 +61,7 @@ exports.summary = asyncHandler(async (req, res) => {
     }),
     // Per-department payment status
     prisma.department.findMany({
-      where: { organizationId: orgId, isActive: true },
+      where: { organizationId: orgId, deletedAt: null },
       select: {
         id: true, name: true, code: true,
         budgetAllocated: true, budgetUsed: true, headcount: true,
@@ -67,7 +72,7 @@ exports.summary = asyncHandler(async (req, res) => {
       where: { organizationId: orgId, isActive: true },
       orderBy: [{ severity: 'desc' }, { confidence: 'desc' }],
     }),
-    // Tax liability (sum of taxWithheld this month)
+    // Tax liability (sum of taxAmount this month)
     prisma.payrollEntry.aggregate({
       where: {
         payrollRun: {
@@ -75,7 +80,7 @@ exports.summary = asyncHandler(async (req, res) => {
           periodStart: { gte: monthStart },
         },
       },
-      _sum: { taxWithheld: true },
+      _sum: { taxAmount: true },
     }),
     // Recent system activity (last 10 audit logs)
     prisma.auditLog.findMany({
@@ -150,7 +155,7 @@ exports.summary = asyncHandler(async (req, res) => {
       potentialSaving:  Number(aiInsight.potentialSaving || 0),
     } : null,
     taxLiability: {
-      amount:           Number(taxLiability._sum.taxWithheld || 151204),
+      amount:           Number(taxLiability._sum.taxAmount || 0),
       currency:         'USD',
     },
     recentActivity:      recentActivity.map(log => ({
@@ -170,13 +175,17 @@ exports.summary = asyncHandler(async (req, res) => {
 
 // ─── Employee distribution (bar chart) ────────────────────────────
 exports.employeeDistribution = asyncHandler(async (req, res) => {
-  const orgId = req.query.organizationId || 'org-techflow-001';
+  let orgId = req.query.organizationId;
+  if (!orgId) {
+    const firstOrg = await prisma.organization.findFirst({ select: { id: true } });
+    orgId = firstOrg?.id || 'none';
+  }
   const cacheKey = `dashboard:distribution:${orgId}`;
   const cached = await cacheGet(cacheKey);
   if (cached) return ApiResponse.success(res, cached);
 
   const departments = await prisma.department.findMany({
-    where: { organizationId: orgId, isActive: true },
+    where: { organizationId: orgId, deletedAt: null },
     select: {
       id: true, name: true, code: true, headcount: true,
       _count: {
@@ -240,7 +249,11 @@ exports.liveActivity = asyncHandler(async (req, res) => {
 
 // ─── KPI metrics for quick stats ──────────────────────────────────
 exports.kpis = asyncHandler(async (req, res) => {
-  const orgId = req.query.organizationId || 'org-techflow-001';
+  let orgId = req.query.organizationId;
+  if (!orgId) {
+    const firstOrg = await prisma.organization.findFirst({ select: { id: true } });
+    orgId = firstOrg?.id || 'none';
+  }
   const cacheKey = `dashboard:kpis:${orgId}`;
   const cached = await cacheGet(cacheKey);
   if (cached) return ApiResponse.success(res, cached);
