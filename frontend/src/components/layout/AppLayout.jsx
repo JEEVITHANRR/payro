@@ -124,7 +124,7 @@ export default function AppLayout({ children, title, subtitle }) {
       {/* ─── Main Content ─── */}
       <main className="main-content">
         <header className="glass" style={{ 
-          position: 'sticky', top: '1.5rem', z-index: 40,
+          position: 'sticky', top: '1.5rem', zIndex: 40,
           padding: '1rem 2rem', borderRadius: 'var(--radius-xl)', 
           border: '1px solid var(--border-platinum)', display: 'flex', 
           justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem',
