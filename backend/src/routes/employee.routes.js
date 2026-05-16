@@ -11,6 +11,7 @@ router.use(authenticate);
 router.get('/',            ctrl.list);
 router.get('/stats',       ctrl.stats);
 router.get('/promotions',  ctrl.promotions);
+router.get('/:id/insights', ctrl.getInsights);
 router.get('/:id',         ctrl.getById);
 
 router.post('/',

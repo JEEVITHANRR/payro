@@ -19,6 +19,13 @@ import PayrollPage        from './pages/PayrollPage';
 import ProfilePage        from './pages/ProfilePage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import PlaceholderPage    from './pages/PlaceholderPage';
+import AiInsightsPage     from './pages/AiInsightsPage';
+import AttendancePage     from './pages/AttendancePage';
+import DepartmentsPage    from './pages/DepartmentsPage';
+import AnalyticsPage      from './pages/AnalyticsPage';
+import TreasuryPage       from './pages/TreasuryPage';
+import CompliancePage      from './pages/CompliancePage';
+import SecurityPage        from './pages/SecurityPage';
 import NotFoundPage       from './pages/NotFoundPage';
 
 export default function App() {
@@ -70,14 +77,15 @@ export default function App() {
         <Route path="/profile"         element={<ProfilePage />} />
         <Route path="/change-password" element={<ChangePasswordPage />} />
         
-        {/* Module Placeholders */}
-        <Route path="/departments"     element={<PlaceholderPage title="Departments" subtitle="Organizational structure and budget allocation" icon="⬡" />} />
-        <Route path="/attendance"      element={<PlaceholderPage title="Attendance" subtitle="Time tracking and leave management" icon="◷" />} />
-        <Route path="/transactions"    element={<PlaceholderPage title="Transactions" subtitle="Ledger of all salary disbursements" icon="⟳" />} />
-        <Route path="/expenses"        element={<PlaceholderPage title="Expenses" subtitle="Reimbursements and tax deductions" icon="◉" />} />
-        <Route path="/analytics"       element={<PlaceholderPage title="Analytics" subtitle="Deep financial insights and trend analysis" icon="◎" />} />
-        <Route path="/ai"              element={<PlaceholderPage title="AI Insights" subtitle="Predictive intelligence and anomaly detection" icon="◈" />} />
-        <Route path="/audit"           element={<PlaceholderPage title="Audit Log" subtitle="System security and access monitoring" icon="◈" />} />
+        {/* Enterprise Modules */}
+        <Route path="/departments"     element={<DepartmentsPage />} />
+        <Route path="/attendance"      element={<AttendancePage />} />
+        <Route path="/analytics"       element={<AnalyticsPage />} />
+        <Route path="/ai"              element={<AiInsightsPage />} />
+        <Route path="/treasury"        element={<TreasuryPage />} />
+        <Route path="/compliance"      element={<CompliancePage />} />
+        <Route path="/security"        element={<SecurityPage />} />
+        <Route path="/audit"           element={<CompliancePage />} />
         <Route path="/notifications"   element={<PlaceholderPage title="Notifications" subtitle="System alerts and task reminders" icon="🔔" />} />
       </Route>
 

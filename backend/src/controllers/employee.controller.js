@@ -215,3 +215,39 @@ exports.promotions = asyncHandler(async (req, res) => {
   });
   ApiResponse.success(res, promoted);
 });
+// ─── Employee Performance Insights (AI-Powered) ────────────────────
+exports.getInsights = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const employee = await prisma.employee.findUnique({
+    where: { id },
+    include: {
+      attendance: { take: 30, orderBy: { date: 'desc' } },
+      payrollEntries: { take: 12, orderBy: { createdAt: 'desc' } },
+    },
+  });
+
+  if (!employee) throw new AppError('Employee not found.', 404);
+
+  // Simple heuristic-based performance AI
+  const attendanceRate = employee.attendance.length > 0 
+    ? (employee.attendance.filter(a => a.status === 'PRESENT').length / employee.attendance.length) * 100
+    : 100;
+  
+  const tenureMonths = Math.floor((new Date() - new Date(employee.hireDate)) / (1000 * 60 * 60 * 24 * 30.44));
+  
+  const salaryComp = employee.baseSalary ? (Number(employee.baseSalary) / 120000) * 100 : 0; // Relative to market mean 120k
+
+  const insights = {
+    performanceScore: Math.min(100, Math.round(attendanceRate * 0.4 + (tenureMonths > 12 ? 30 : 10) + (salaryComp > 90 ? 30 : 10))),
+    reliabilityIndex: attendanceRate.toFixed(1) + '%',
+    tenureAssessment: tenureMonths > 24 ? 'LEGACY' : tenureMonths > 12 ? 'ESTABLISHED' : 'ONBOARDING',
+    marketCompetitiveness: salaryComp > 110 ? 'PREMIUM' : salaryComp > 90 ? 'OPTIMAL' : 'BELOW_PAR',
+    recommendations: [
+      attendanceRate < 90 ? 'Review attendance consistency.' : 'Maintain high reliability.',
+      salaryComp < 90 ? 'Review compensation against market standards.' : 'Compensation is competitive.',
+      tenureMonths > 12 && !employee.promotedAt ? 'Assess for potential promotion or growth role.' : 'Focus on current role excellence.'
+    ]
+  };
+
+  ApiResponse.success(res, insights);
+});
