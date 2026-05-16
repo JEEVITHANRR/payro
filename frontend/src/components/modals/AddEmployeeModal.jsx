@@ -1,15 +1,16 @@
-// src/components/modals/AddEmployeeModal.jsx — Ultra-Luxury Onboarding Portal
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, User, Mail, Briefcase, Building, 
   Wallet, Calendar, Sparkles, ArrowRight,
-  ShieldCheck, Globe, CreditCard
+  ShieldCheck, Globe, CreditCard, Phone, Target
 } from 'lucide-react';
 import { departmentApi, employeesApi } from '../../api/client';
 import { toast } from 'sonner';
 
 export default function AddEmployeeModal({ isOpen, onClose, onRefresh }) {
+  const navigate = useNavigate();
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [useManualDept, setUseManualDept] = useState(false);
@@ -18,13 +19,15 @@ export default function AddEmployeeModal({ isOpen, onClose, onRefresh }) {
     firstName: '',
     lastName: '',
     email: '',
+    phone: '',
     title: '',
     departmentId: '',
     manualDepartment: '',
-    organizationId: 'f00d1e55-0000-0000-0000-000000000000', // Institutional Default
+    organizationId: 'f00d1e55-0000-0000-0000-000000000000', 
     employmentType: 'FULL_TIME',
     hireDate: new Date().toISOString().split('T')[0],
     baseSalary: 85000,
+    targetSalary: 100000,
   });
 
   useEffect(() => {
@@ -74,15 +77,18 @@ export default function AddEmployeeModal({ isOpen, onClose, onRefresh }) {
         finalDeptId = deptRes.data.data.id;
       }
 
-      await employeesApi.create({
+      const res = await employeesApi.create({
         ...formData,
         departmentId: finalDeptId,
         baseSalary: Number(formData.baseSalary),
+        targetSalary: Number(formData.targetSalary),
       });
       
+      const newEmp = res.data.data;
       toast.success('Professional record integrated into global directory.');
       onRefresh();
       onClose();
+      navigate(`/employees/${newEmp.id}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Strategic integration failed.');
     } finally {
@@ -186,13 +192,23 @@ export default function AddEmployeeModal({ isOpen, onClose, onRefresh }) {
 
               <div style={{ gridColumn: 'span 2' }}>
                 <label style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-slate)', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Institutional Email</label>
-                <div style={{ position: 'relative' }}>
-                  <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-gold)' }} />
-                  <input 
-                    type="email" required className="input" placeholder="a.sterling@payro.enterprise"
-                    style={{ paddingLeft: '40px', background: 'white', borderRadius: '12px', height: '48px' }}
-                    value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })}
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1rem' }}>
+                  <div style={{ position: 'relative' }}>
+                    <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-gold)' }} />
+                    <input 
+                      type="email" required className="input" placeholder="a.sterling@payro.enterprise"
+                      style={{ paddingLeft: '40px', background: 'white', borderRadius: '12px', height: '48px' }}
+                      value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    />
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <Phone size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-gold)' }} />
+                    <input 
+                      type="text" className="input" placeholder="+91 98765 43210"
+                      style={{ paddingLeft: '40px', background: 'white', borderRadius: '12px', height: '48px' }}
+                      value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -251,6 +267,18 @@ export default function AddEmployeeModal({ isOpen, onClose, onRefresh }) {
                     type="number" required className="input" placeholder="120000"
                     style={{ paddingLeft: '40px', background: 'white', borderRadius: '12px', height: '48px' }}
                     value={formData.baseSalary} onChange={e => setFormData({ ...formData, baseSalary: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div style={{ gridColumn: 'span 1' }}>
+                <label style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-slate)', textTransform: 'uppercase', marginBottom: '8px', display: 'block' }}>Target Incentives</label>
+                <div style={{ position: 'relative' }}>
+                  <Target size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-gold)' }} />
+                  <input 
+                    type="number" className="input" placeholder="150000"
+                    style={{ paddingLeft: '40px', background: 'white', borderRadius: '12px', height: '48px' }}
+                    value={formData.targetSalary} onChange={e => setFormData({ ...formData, targetSalary: e.target.value })}
                   />
                 </div>
               </div>
