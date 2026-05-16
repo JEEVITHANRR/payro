@@ -7,6 +7,7 @@ import { authApi } from './api/client';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import PublicRoute from './components/layout/PublicRoute';
 
+import LandingPage        from './pages/LandingPage';
 import LoginPage          from './pages/LoginPage';
 import SignupPage         from './pages/SignupPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -81,7 +82,7 @@ export default function App() {
       </Route>
 
       {/* Redirects */}
-      <Route path="/"  element={<Navigate to="/dashboard" replace />} />
+      <Route path="/"  element={<LandingPage />} />
       <Route path="*"  element={<NotFoundPage />} />
     </Routes>
   );
