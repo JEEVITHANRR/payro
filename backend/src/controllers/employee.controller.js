@@ -38,10 +38,10 @@ exports.list = asyncHandler(async (req, res) => {
       orderBy,
       select: {
         id: true, employeeId: true, firstName: true, lastName: true,
-        email: true, title: true, jobRole: true, status: true,
+        email: true, title: true, status: true,
         employmentType: true, hireDate: true, baseSalary: true,
         targetSalary: true, currency: true, avatarUrl: true,
-        promotedAt: true, yearsOfService: true,
+        promotedAt: true,
         department: { select: { id: true, name: true, code: true } },
         manager: { select: { id: true, firstName: true, lastName: true } },
       },
@@ -65,7 +65,6 @@ exports.getById = asyncHandler(async (req, res) => {
       department:  { select: { id: true, name: true, code: true } },
       manager:     { select: { id: true, firstName: true, lastName: true, title: true } },
       user:        { select: { id: true, email: true, role: true, lastLoginAt: true } },
-      salaries:    { orderBy: { effectiveDate: 'desc' }, take: 5 },
       payrollEntries: {
         orderBy: { createdAt: 'desc' }, take: 3,
         include: { payrollRun: { select: { name: true, periodStart: true, status: true } } },
@@ -97,17 +96,6 @@ exports.create = asyncHandler(async (req, res) => {
     },
   });
 
-  // Create initial salary record
-  await prisma.salary.create({
-    data: {
-      employeeId: employee.id,
-      amount: data.baseSalary,
-      currency: data.currency || 'USD',
-      effectiveDate: new Date(data.hireDate),
-      reason: 'HIRE',
-    },
-  });
-
   // Update department headcount
   await prisma.department.update({
     where: { id: data.departmentId },
@@ -135,20 +123,6 @@ exports.update = asyncHandler(async (req, res) => {
 
   const existing = await prisma.employee.findFirst({ where: { id, deletedAt: null } });
   if (!existing) throw new AppError('Employee not found.', 404);
-
-  // If salary changed, create salary history record
-  if (data.baseSalary && data.baseSalary !== Number(existing.baseSalary)) {
-    await prisma.salary.create({
-      data: {
-        employeeId: id,
-        amount: data.baseSalary,
-        currency: data.currency || existing.currency,
-        effectiveDate: new Date(),
-        reason: 'UPDATE',
-        approvedBy: req.user.id,
-      },
-    });
-  }
 
   const updated = await prisma.employee.update({
     where: { id },

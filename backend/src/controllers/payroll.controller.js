@@ -23,7 +23,7 @@ exports.list = asyncHandler(async (req, res) => {
         periodStart: true, periodEnd: true, payDate: true,
         totalGross: true, totalNet: true, totalTax: true,
         totalDeductions: true, employeeCount: true, currency: true,
-        approvedBy: true, approvedAt: true, processedAt: true,
+        approvedById: true, approvedAt: true, processedAt: true,
         createdAt: true, updatedAt: true,
       },
     }),
@@ -62,7 +62,7 @@ exports.getById = asyncHandler(async (req, res) => {
           },
           department: { select: { name: true } },
         },
-        orderBy: { netPay: 'desc' },
+        orderBy: { netSalary: 'desc' },
       },
       transactions: { orderBy: { createdAt: 'desc' }, take: 20 },
     },
@@ -80,12 +80,12 @@ exports.getById = asyncHandler(async (req, res) => {
     entries: run.entries.map(e => ({
       ...e,
       baseSalary:  Number(e.baseSalary),
-      grossPay:    Number(e.grossPay),
-      netPay:      Number(e.netPay),
+      grossSalary: Number(e.grossSalary),
+      netSalary:   Number(e.netSalary),
       overtime:    Number(e.overtime),
       bonuses:     Number(e.bonuses),
       deductions:  Number(e.deductions),
-      taxWithheld: Number(e.taxWithheld),
+      taxAmount:   Number(e.taxAmount),
     })),
   };
 
@@ -149,20 +149,20 @@ exports.generateEntries = asyncHandler(async (req, res) => {
   const entries = employees.map(emp => {
     const base       = Number(emp.baseSalary);
     const taxRate    = 0.22; // simplified; real impl uses taxInfo brackets
-    const taxWithheld = base * taxRate;
-    const netPay     = base - taxWithheld;
+    const taxAmount  = base * taxRate;
+    const netSalary  = base - taxAmount;
     return {
       payrollRunId: id,
       employeeId:   emp.id,
       departmentId: emp.departmentId,
       baseSalary:   base,
-      grossPay:     base,
-      netPay,
-      taxWithheld,
+      grossSalary:  base,
+      netSalary,
+      taxAmount,
+      taxRate:      0.22,
       overtime:     0,
       bonuses:      0,
       deductions:   0,
-      status:       'DRAFT',
     };
   });
 
@@ -175,9 +175,9 @@ exports.generateEntries = asyncHandler(async (req, res) => {
   // Recalculate totals
   const totals = entries.reduce(
     (acc, e) => ({
-      totalGross:      acc.totalGross + e.grossPay,
-      totalNet:        acc.totalNet + e.netPay,
-      totalTax:        acc.totalTax + e.taxWithheld,
+      totalGross:      acc.totalGross + e.grossSalary,
+      totalNet:        acc.totalNet + e.netSalary,
+      totalTax:        acc.totalTax + e.taxAmount,
       totalDeductions: acc.totalDeductions + e.deductions,
     }),
     { totalGross: 0, totalNet: 0, totalTax: 0, totalDeductions: 0 }
@@ -242,9 +242,9 @@ exports.approve = asyncHandler(async (req, res) => {
   const updated = await prisma.payrollRun.update({
     where: { id },
     data: {
-      status:     'APPROVED',
-      approvedBy: req.user.id,
-      approvedAt: new Date(),
+      status:       'APPROVED',
+      approvedById: req.user.id,
+      approvedAt:   new Date(),
     },
   });
 
@@ -295,7 +295,7 @@ exports.departmentSummary = asyncHandler(async (req, res) => {
   const summary = await prisma.payrollEntry.groupBy({
     by: ['departmentId'],
     where: { payrollRunId: id },
-    _sum: { netPay: true, grossPay: true, taxWithheld: true },
+    _sum: { netSalary: true, grossSalary: true, taxAmount: true },
     _count: { employeeId: true },
   });
 
@@ -310,9 +310,9 @@ exports.departmentSummary = asyncHandler(async (req, res) => {
     departmentId:   s.departmentId,
     departmentName: deptMap[s.departmentId] || 'Unknown',
     employeeCount:  s._count.employeeId,
-    totalNet:       Number(s._sum.netPay || 0),
-    totalGross:     Number(s._sum.grossPay || 0),
-    totalTax:       Number(s._sum.taxWithheld || 0),
+    totalNet:       Number(s._sum.netSalary || 0),
+    totalGross:     Number(s._sum.grossSalary || 0),
+    totalTax:       Number(s._sum.taxAmount || 0),
   }));
 
   ApiResponse.success(res, result);
