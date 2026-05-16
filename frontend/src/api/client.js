@@ -115,6 +115,7 @@ export const dashboardApi = {
 export const employeesApi = {
   list:    (params) => client.get('/employees', { params }),
   getById: (id)     => client.get(`/employees/${id}`),
+  getInsights: (id) => client.get(`/employees/${id}/insights`),
   create:  (data)   => client.post('/employees', data),
   update:  (id, data) => client.patch(`/employees/${id}`, data),
   remove:  (id)     => client.delete(`/employees/${id}`),

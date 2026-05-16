@@ -24,6 +24,37 @@ export default function EmployeesPage() {
     }
   };
 
+  const exportToCSV = () => {
+    if (employees.length === 0) {
+      toast.error('No organizational records available for export.');
+      return;
+    }
+    const headers = ['Professional ID', 'First Name', 'Last Name', 'Email', 'Title', 'Department', 'Type', 'Status', 'Base Salary'];
+    const rows = employees.map(emp => [
+      emp.employeeId,
+      emp.firstName,
+      emp.lastName,
+      emp.email,
+      emp.title,
+      emp.department?.name || 'Unassigned',
+      emp.employmentType,
+      emp.status,
+      emp.baseSalary
+    ]);
+
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `payro_workforce_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Dossier exported successfully.');
+  };
+
   useEffect(() => {
     fetch();
   }, []);
@@ -40,7 +71,11 @@ export default function EmployeesPage() {
             <p style={{ fontSize: '0.85rem', color: 'var(--text-slate)' }}>Total {employees.length} Active Records</p>
           </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <button className="btn" style={{ background: 'var(--bg-soft-ivory)', border: '1px solid var(--border-platinum)' }}>
+            <button 
+              className="btn" 
+              style={{ background: 'var(--bg-soft-ivory)', border: '1px solid var(--border-platinum)' }}
+              onClick={exportToCSV}
+            >
               Export CSV
             </button>
             <button className="btn btn-gold" onClick={() => setIsModalOpen(true)}>+ Add Professional</button>
