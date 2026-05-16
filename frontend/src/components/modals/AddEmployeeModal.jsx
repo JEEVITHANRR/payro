@@ -7,10 +7,12 @@ import {
   ShieldCheck, Globe, CreditCard, Phone, Target
 } from 'lucide-react';
 import { departmentApi, employeesApi } from '../../api/client';
+import { useAuthStore } from '../../store/authStore';
 import { toast } from 'sonner';
 
 export default function AddEmployeeModal({ isOpen, onClose, onRefresh }) {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [useManualDept, setUseManualDept] = useState(false);
@@ -23,12 +25,18 @@ export default function AddEmployeeModal({ isOpen, onClose, onRefresh }) {
     title: '',
     departmentId: '',
     manualDepartment: '',
-    organizationId: 'f00d1e55-0000-0000-0000-000000000000', 
+    organizationId: user?.organizationId || 'f00d1e55-0000-0000-0000-000000000000', 
     employmentType: 'FULL_TIME',
     hireDate: new Date().toISOString().split('T')[0],
     baseSalary: 85000,
     targetSalary: 100000,
   });
+
+  useEffect(() => {
+    if (user?.organizationId) {
+      setFormData(prev => ({ ...prev, organizationId: user.organizationId }));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (isOpen) {

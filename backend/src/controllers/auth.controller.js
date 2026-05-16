@@ -46,10 +46,22 @@ exports.register = asyncHandler(async (req, res) => {
 
   const passwordHash = await bcrypt.hash(password, 12);
 
+  // Create organization first
+  const org = await prisma.organization.create({
+    data: {
+      name: `${firstName}'s Enterprise`,
+      slug: `${firstName.toLowerCase()}-${Date.now()}`,
+    }
+  });
+
   const user = await prisma.user.create({
-    data: { email, passwordHash, firstName, lastName, role: role || 'EMPLOYEE', phone },
+    data: { 
+      email, passwordHash, firstName, lastName, 
+      role: role || 'EMPLOYEE', phone,
+      organizationId: org.id 
+    },
     select: {
-      id: true, email: true, role: true,
+      id: true, email: true, role: true, organizationId: true,
       firstName: true, lastName: true, createdAt: true,
     },
   });
@@ -130,6 +142,7 @@ exports.login = asyncHandler(async (req, res) => {
       lastName:        user.lastName,
       avatarUrl:       user.avatarUrl,
       isEmailVerified: user.isEmailVerified,
+      organizationId:  user.organizationId,
     },
   }, 'Login successful.');
 });
@@ -204,6 +217,7 @@ exports.me = asyncHandler(async (req, res) => {
       firstName: true, lastName: true,
       avatarUrl: true, phone: true,
       isEmailVerified: true, lastLoginAt: true,
+      organizationId: true,
       createdAt: true,
       employee: {
         select: {
