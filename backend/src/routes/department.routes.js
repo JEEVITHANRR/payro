@@ -7,7 +7,7 @@ const { createDepartmentSchema } = require('../validations/schemas');
 router.use(authenticate);
 router.get('/',     ctrl.list);
 router.get('/:id',  ctrl.getById);
-router.post('/',    requireMinRole('HR_MANAGER'), validate(createDepartmentSchema), ctrl.create);
+router.post('/',    requireMinRole('EMPLOYEE'), validate(createDepartmentSchema), ctrl.create);
 router.patch('/:id',requireMinRole('HR_MANAGER'), ctrl.update);
 router.delete('/:id',requireMinRole('ADMIN'), ctrl.remove);
 module.exports = router;

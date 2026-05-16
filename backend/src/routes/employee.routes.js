@@ -15,7 +15,7 @@ router.get('/:id/insights', ctrl.getInsights);
 router.get('/:id',         ctrl.getById);
 
 router.post('/',
-  requireMinRole('HR_MANAGER'),
+  requireMinRole('EMPLOYEE'),
   validate(createEmployeeSchema),
   auditLog('CREATE', 'Employee'),
   ctrl.create
