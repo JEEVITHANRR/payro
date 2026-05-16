@@ -141,9 +141,47 @@ export const notificationsApi = {
 
 // ─── Analytics API ─────────────────────────────────────────────
 export const analyticsApi = {
-  payrollTrend:   () => client.get('/analytics/payroll-trend'),
-  budgetBreakdown:() => client.get('/analytics/budget-breakdown'),
-  headcountTrend: () => client.get('/analytics/headcount-trend'),
+  payrollTrend:    () => client.get('/analytics/payroll-trend'),
+  budgetBreakdown: () => client.get('/analytics/budget-breakdown'),
+  headcountTrend:  () => client.get('/analytics/headcount-trend'),
+  compensationAnalysis: () => client.get('/analytics/compensation-analysis'),
+  exportReport:    (params) => client.get('/analytics/export', { params }),
+};
+
+// ─── AI Insights API ───────────────────────────────────────────
+export const aiApi = {
+  list:              (params) => client.get('/ai', { params }),
+  topInsight:        ()       => client.get('/ai/top'),
+  applyInsight:      (id)     => client.post(`/ai/apply/${id}`),
+  dismissInsight:    (id)     => client.patch(`/ai/dismiss/${id}`),
+  generateInsights:  (data)   => client.post('/ai/generate', data),
+  salaryPredictions: ()       => client.get('/ai/salary-predictions'),
+  fraudDetection:    ()       => client.get('/ai/fraud-detection'),
+};
+
+// ─── Attendance API ────────────────────────────────────────────
+export const attendanceApi = {
+  list:    (params) => client.get('/attendance', { params }),
+  create:  (data)   => client.post('/attendance', data),
+  summary: (params) => client.get('/attendance/summary', { params }),
+};
+
+// ─── Departments API ───────────────────────────────────────────
+export const departmentApi = {
+  list:    (params)    => client.get('/departments', { params }),
+  getById: (id)        => client.get(`/departments/${id}`),
+  create:  (data)      => client.post('/departments', data),
+  update:  (id, data)  => client.patch(`/departments/${id}`, data),
+  remove:  (id)        => client.delete(`/departments/${id}`),
+};
+
+// ─── Expenses/Treasury API ─────────────────────────────────────
+export const expenseApi = {
+  list:    (params) => client.get('/expenses', { params }),
+  create:  (data)   => client.post('/expenses', data),
+  getById: (id)     => client.get(`/expenses/${id}`),
+  approve: (id)     => client.post(`/expenses/${id}/approve`),
+  reject:  (id)     => client.post(`/expenses/${id}/reject`),
 };
 
 export default client;
