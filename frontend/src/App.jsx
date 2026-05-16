@@ -17,6 +17,7 @@ import DashboardPage      from './pages/DashboardPage';
 import EmployeesPage      from './pages/EmployeesPage';
 import PayrollPage        from './pages/PayrollPage';
 import ProfilePage        from './pages/ProfilePage';
+import EmployeeProfilePage from './pages/EmployeeProfilePage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import PlaceholderPage    from './pages/PlaceholderPage';
 import AiInsightsPage     from './pages/AiInsightsPage';
@@ -73,6 +74,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard"       element={<DashboardPage />} />
         <Route path="/employees"       element={<EmployeesPage />} />
+        <Route path="/employees/:id"   element={<EmployeeProfilePage />} />
         <Route path="/payroll"         element={<PayrollPage />} />
         <Route path="/profile"         element={<ProfilePage />} />
         <Route path="/change-password" element={<ChangePasswordPage />} />

@@ -1,11 +1,13 @@
 // src/pages/EmployeesPage.jsx — Luxury Workforce Directory
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import { employeesApi } from '../api/client';
 import { toast } from 'sonner';
 import AddEmployeeModal from '../components/modals/AddEmployeeModal';
 
 export default function EmployeesPage() {
+  const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -110,7 +112,11 @@ export default function EmployeesPage() {
                       </span>
                     </td>
                     <td style={{ paddingRight: '2rem', textAlign: 'right' }}>
-                      <button className="btn" style={{ padding: '6px 12px', fontSize: '0.75rem', background: 'transparent', border: '1px solid var(--border-platinum)' }}>
+                      <button 
+                        className="btn" 
+                        style={{ padding: '6px 12px', fontSize: '0.75rem', background: 'transparent', border: '1px solid var(--border-platinum)' }}
+                        onClick={() => navigate(`/employees/${emp.id}`)}
+                      >
                         View Profile
                       </button>
                     </td>
