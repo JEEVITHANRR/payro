@@ -5,7 +5,7 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "start:railway": "npx prisma migrate deploy && npx prisma generate && node src/app.js",
+    "start:railway": "npx prisma db push --accept-data-loss && npx prisma generate && node src/app.js",
     "dev": "nodemon src/app.js",
     "build": "npm install && npx prisma generate",
     "prisma:generate": "npx prisma generate",
